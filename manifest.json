@@ -1,20 +1,19 @@
 {
-	"name": "Allow-Control-Allow-Origin: *",
-	"version": "1.0.2",
+	"name": "JIRA - Eye in the sky",
+	"version": "1.0",
 	"manifest_version": 2,
-	"description": "Allows to you request any site with ajax from any source. Adds to response 'Allow-Control-Allow-Origin: *' header",
+	"description": "JIRA Burn Down extensions",
 	"background": {
 		"scripts": ["background.js"]
 	},
 	"browser_action": {
 		"default_icon": "off.png",
-		"default_title": "Allow-Control-Allow-Origin",
+		"default_title": "Burn it down",
 		"default_popup": "popup.html"
 	},
 	"permissions": [
 		"storage",
 		"webRequest",
-		"webRequestBlocking",
 		"<all_urls>"
 	],
 	"web_accessible_resources": [

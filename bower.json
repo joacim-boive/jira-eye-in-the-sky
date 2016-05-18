@@ -1,8 +1,22 @@
 {
-  "name": "Allow-Control-Allow-Origin: *",
-  "version": "1.0.0",
+  "name": "JIRA - Eye in the sky",
+  "homepage": "null",
+  "authors": [
+    "joacim.boive@gmail.com <gsxr750>"
+  ],
+  "description": "Extension for JIRA to manage time entries",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
   "dependencies": {
-    "ionic": "~0.9.27",
-    "jquery": "~2.1.1"
+    "bootstrap": "^3.3.6",
+    "ionic": "^1.3.1"
   }
 }
