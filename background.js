@@ -1,6 +1,3 @@
-var accessControlRequestHeaders;
-var exposedHeaders;
-
 var requestListener = function (details) {
     var flag = false,
         rule = {
@@ -65,18 +62,15 @@ var responseListener = function (details) {
 /*On install*/
 chrome.runtime.onInstalled.addListener(function () {
     chrome.storage.local.set({'active': false});
+    chrome.storage.local.set({'labelOne': ''});
+    chrome.storage.local.set({'labelTwo': ''});
     reload();
 });
 
 /*Reload settings*/
 function reload() {
-    chrome.storage.local.get({'active': false}, function (result) {
-debugger;
-        exposedHeaders = result.exposedHeaders;
-
-        /*Remove Listeners*/
-        chrome.webRequest.onHeadersReceived.removeListener(responseListener);
-        chrome.webRequest.onBeforeSendHeaders.removeListener(requestListener);
+    chrome.storage.local.get({'active': false, 'labelOne': '', 'labelTwo': ''}, function (result) {
+        //var data = $('#ghx-chart-data td[headers="series-event-type"]')
 
         if (result.active) {
             chrome.browserAction.setIcon({path: "on.png"});
