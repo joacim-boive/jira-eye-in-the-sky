@@ -11,6 +11,11 @@
 		"default_title": "Burn it down",
 		"default_popup": "popup.html"
 	},
+	"content_scripts": [ {
+		"js": [ "bower_components/jquery/dist/jquery.min.js", "content.js" ],
+		"css": [],
+		"matches": [ "http://*/*", "https://*/*"]
+	}],
 	"permissions": [
 		"storage",
 		"webRequest",
