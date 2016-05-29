@@ -13,7 +13,7 @@
 	},
 	"content_scripts": [ {
 		"js": [ "bower_components/jquery/dist/jquery.min.js", "content.js" ],
-		"css": [],
+		"css": ["content.css","bower_components/hint.css/hint.min.css"],
 		"matches": [ "http://*/*", "https://*/*"]
 	}],
 	"permissions": [

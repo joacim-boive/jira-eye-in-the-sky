@@ -1,0 +1,16 @@
+#jira-eye-in-the-sky_message {
+    position:  absolute;
+    left: 0;
+    top: 0;
+    width: 33%;
+    background: rgba(255,255,255,.95);
+    border: 2px  solid rgba(0,0,0,0.5);
+    box-shadow: 0 1px 1px;
+    border-radius: 2px;
+    padding: 8px;
+    cursor: move;
+}
+
+div[data-labels=""] {
+    background: rgba(171, 66, 66, 0.21);
+}

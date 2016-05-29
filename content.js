@@ -3,7 +3,12 @@ var sprints = {};
 var isActive = false;
 var url = '';
 var labelOne = '';
+var labelOneCount = 0;
 var labelTwo = '';
+var labelTwoCount = 0;
+var thisMessage = null;
+var html = '';
+var missingLabels = 0;
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
@@ -14,6 +19,7 @@ chrome.runtime.onMessage.addListener(
         labelOne = result.labelOne;
         labelTwo = result.labelTwo;
 
+
         localStorage.setItem('isActive', isActive);
         localStorage.setItem('url', url);
         localStorage.setItem('labelOne', labelOne);
@@ -22,21 +28,21 @@ chrome.runtime.onMessage.addListener(
 
 function init(){
 
-    // select the target node
-    var target = document.querySelector('#some-id');
-
-// create an observer instance
-    var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            console.log(mutation.type);
-        });
-    });
-
-// configuration of the observer:
-    var config = { attributes: true, childList: true, characterData: true }
-
-// pass in the target node, as well as the observer options
-    observer.observe(target, config);
+//    // select the target node
+//    var target = document.querySelector('#some-id');
+//
+//// create an observer instance
+//    var observer = new MutationObserver(function(mutations) {
+//        mutations.forEach(function(mutation) {
+//            console.log(mutation.type);
+//        });
+//    });
+//
+//// configuration of the observer:
+//    var config = { attributes: true, childList: true, characterData: true }
+//
+//// pass in the target node, as well as the observer options
+//    observer.observe(target, config);
 
 
     $(document).ajaxStop(function () {
@@ -45,15 +51,18 @@ function init(){
             totalTimer = '<span id="total' + sprintId + '" class="aui-badge" title="Total remaining hours, including sub-tasks">' + sprints[sprintId] + '</span>';
             $('div[data-sprint-id="' + sprintId + '"] div.ghx-badge-group.ghx-right').prepend(totalTimer);
         }
+
+        thisMessage.innerHTML = html;
     });
 
     $sprints.each(function getListOfSprints(index, sprint) {
         sprints[sprint.dataset.sprintId] = 0;
         $.ajax({
-                url: 'http://jira.lenslogistics.int/rest/api/2/search',
+                url: url + '/rest/api/2/search',
                 type: 'GET',
                 dataType: 'json',
                 sprintId: sprint.dataset.sprintId,
+                sprintName: sprint.childNodes[0].childNodes[1].innerText,
                 data: {
                     'jql': 'sprint=' + sprint.dataset.sprintId + ' AND type != Sub-task'
                 }
@@ -61,7 +70,13 @@ function init(){
             .done(function getIssuesInCurrentSprint(data) {
                 var that = this;
 
+                labelOneCount = 0;
+                labelTwoCount = 0;
+                missingLabels = 0;
+
                 data.issues.forEach(function getEachIssue(issue) {
+                    var labels = [];
+
                     var hoursForStory = 0;
                     var hoursActual = 0;
                     var hoursIncludingSubTasks = issue.fields.aggregatetimeestimate / 3600;
@@ -72,7 +87,22 @@ function init(){
                     var listIssue = document.querySelector('a[title="' + issue.key + '"]');
 
                     if(listIssue){
-                        listIssue.setAttribute('data-labels', issue.fields.labels.join(','));
+                        for(var x = 0, labelLen = issue.fields.labels.length; x < labelLen; x++){
+                            if(issue.fields.labels[x] === labelOne){
+                                labelOneCount++;
+                                labels.push(labelOne);
+                            }
+                            if(issue.fields.labels[x] === labelTwo){
+                                labelTwoCount++;
+                                labels.push(labelTwo);
+                            }
+                        }
+
+                        if(labels.length === 0){
+                            missingLabels++;
+                            console.warn('Missing labels: ' + key);
+                        }
+                        $(listIssue).closest('.js-issue').attr('data-labels', labels.join(','));
                     }
 
                     hoursForStory = parseInt($timeHolder.text());
@@ -81,6 +111,17 @@ function init(){
                     $timeHolder.text(hoursActual);
                     sprints[that.sprintId] += hoursActual;
                 });
+
+                html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(that.sprintId + ' and type != sub-task') + '">' + that.sprintName + ' : ' + that.sprintId + '</a></li><ul>';
+                html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(that.sprintId + ' and labels in(' + labelOne + ')') +'">' + labelOne + ': ' + labelOneCount + '</a>';
+                html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(that.sprintId + ' and labels in(' + labelTwo + ')') +'">' + labelTwo + ': ' + labelTwoCount + '</a>';
+
+                if(missingLabels > 0){
+                    html+= '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(that.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo + ') or labels is Empty) and type != sub-task') +'">Missing labels - ' + missingLabels + '</a>'
+                }
+                html += '</ul></ul>';
+
+
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
                 console.log('HTTP Request Failed');
@@ -88,6 +129,38 @@ function init(){
     });
 }
 
+function messageSystem(){
+    var thisId = 'jira-eye-in-the-sky_message';
+
+    function dragStart(event) {
+        var style = window.getComputedStyle(event.target, null);
+        event.dataTransfer.setData('text/plain',
+            (parseInt(style.getPropertyValue('left'),10) - event.clientX) + ',' + (parseInt(style.getPropertyValue('top'),10) - event.clientY));
+    }
+
+    function dragOver(event) {
+        event.preventDefault();
+        return false;
+    }
+
+    function drop(event) {
+        var offset = event.dataTransfer.getData('text/plain').split(',');
+        var dm = document.getElementById(thisId);
+
+        dm.style.left = (event.clientX + parseInt(offset[0],10)) + 'px';
+        dm.style.top = (event.clientY + parseInt(offset[1],10)) + 'px';
+
+        event.preventDefault();
+        return false;
+    }
+
+    $('body').append('<aside draggable="true" id="' + thisId + '">Loading...</aside>');
+
+    thisMessage = document.getElementById(thisId);
+    thisMessage.addEventListener('dragstart',dragStart,false);
+    document.body.addEventListener('dragover',dragOver,false);
+    document.body.addEventListener('drop',drop,false);
+}
 
 function launch(){
     if(!isActive){
@@ -100,6 +173,8 @@ function launch(){
            url = localStorage.getItem('url');
            labelOne = localStorage.getItem('labelOne');
            labelTwo = localStorage.getItem('labelTwo');
+
+           messageSystem();
        }
     }
 
@@ -111,7 +186,6 @@ function launch(){
     if (!$('.ghx-sprint-group > div[data-sprint-id]').size()) {
         window.requestAnimationFrame(launch);
     }else{
-        debugger;
         $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
         init();
     }
