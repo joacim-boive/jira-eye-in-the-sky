@@ -117,7 +117,7 @@ function init(){
                 html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(that.sprintId + ' and labels in(' + labelTwo + ')') +'">' + labelTwo + ': ' + labelTwoCount + '</a>';
 
                 if(missingLabels > 0){
-                    html+= '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(that.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo + ') or labels is Empty) and type != sub-task') +'">Missing labels - ' + missingLabels + '</a>'
+                    html+= '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(that.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo + ') or labels is Empty) and type != sub-task') +'"><span class="hint--top hint--warning hint--bounce" aria-label="Click to show JIRAs that are missing the ' + labelOne + ' & ' + labelTwo + ' label(s)">Missing labels - ' + missingLabels + '</span></a>'
                 }
                 html += '</ul></ul>';
 
