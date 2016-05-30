@@ -14,6 +14,10 @@ function reload() {
         if (result.active) {
             chrome.browserAction.setIcon({path: "on.png"});
 
+            //if(document.location.href.toLowerCase().indexOf('&view=planning') === -1){
+            //    return alert('You must be in the planning view of an Agile board');
+            //}
+
         } else {
             chrome.browserAction.setIcon({path: "off.png"});
         }

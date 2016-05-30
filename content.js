@@ -1,6 +1,6 @@
 var $sprints = null;
 var sprints = {};
-var isActive = false;
+var isActive = 0;
 var url = '';
 var labelOne = '';
 var labelOneCount = 0;
@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         var result = request.result;
 
-        isActive = result.active;
+        isActive = +result.active;
         url = result.url;
         labelOne = result.labelOne;
         labelTwo = result.labelTwo;
@@ -163,10 +163,10 @@ function messageSystem(){
 }
 
 function launch(){
-    if(!isActive){
-        isActive = localStorage.getItem('isActive');
+    if(isActive !== 1){
+        isActive = parseInt(localStorage.getItem('isActive')) || 0;
 
-       if(!isActive){
+        if(isActive !== 1){
            console.log('Disabled...');
            return;
        }else{

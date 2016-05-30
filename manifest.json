@@ -1,8 +1,8 @@
 {
-	"name": "JIRA - Eye in the sky",
-	"version": "1.0",
+	"name": "JIRALyser",
+	"version": "0.5",
 	"manifest_version": 2,
-	"description": "JIRA Burn Down extensions",
+	"description": "Extend JIRA without having to go thru IT",
 	"background": {
 		"scripts": ["background.js"]
 	},

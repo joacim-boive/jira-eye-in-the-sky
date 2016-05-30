@@ -1,7 +1,6 @@
 var app = angular.module('cors', ['ionic']);
 
 app.controller('PopupCtrl', ['$scope', function($scope) {
-debugger;
 	$scope.active = false;
 	$scope.url = '';
 	$scope.labelOne = '';
