@@ -1,8 +1,11 @@
 {
-	"name": "JIRALyser",
-	"version": "0.5",
+	"name": "JIRALyzer",
+	"version": "0.0.0.2",
 	"manifest_version": 2,
-	"description": "Extend JIRA without having to go thru IT",
+	"description": "Extend JIRA",
+	"icons": { "16": "icons/icon16.png",
+		"48": "icons/icon48.png",
+		"128": "icons/icon128.png" },
 	"background": {
 		"scripts": ["background.js"]
 	},
@@ -18,7 +21,6 @@
 	}],
 	"permissions": [
 		"storage",
-		"webRequest",
 		"<all_urls>"
 	],
 	"web_accessible_resources": [
