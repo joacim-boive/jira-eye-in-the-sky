@@ -5,6 +5,7 @@ var url = '';
 var labelOne = '';
 var labelTwo = '';
 var thisMessage = null;
+var thisMessageHolder = null;
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
@@ -64,7 +65,7 @@ function init(){
             html += sprint.html;
         });
 
-        thisMessage.innerHTML = html;
+        thisMessageHolder.innerHTML = html;
     });
 
     $sprints.each(function getListOfSprints(index, sprint) {
@@ -193,9 +194,11 @@ function messageSystem(){
         return false;
     }
 
-    $('body').append('<aside draggable="true" id="' + thisId + '">Loading...</aside>');
+    $('body').append('<aside draggable="true" id="' + thisId + '"><h1>JIRALyzer - Planning</h1><div class="jl-content"><p>Loading...</p></div></aside>');
 
     thisMessage = document.getElementById(thisId);
+    thisMessageHolder =  thisMessage.querySelector('.jl-content');
+
     thisMessage.addEventListener('dragstart',dragStart,false);
     document.body.addEventListener('dragover',dragOver,false);
     document.body.addEventListener('drop',drop,false);
