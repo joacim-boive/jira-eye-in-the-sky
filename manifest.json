@@ -11,7 +11,7 @@
 	},
 	"browser_action": {
 		"default_icon": "off.png",
-		"default_title": "Burn it down",
+		"default_title": "JIRALyzer",
 		"default_popup": "popup.html"
 	},
 	"content_scripts": [ {
