@@ -3,7 +3,7 @@
     left: 1%;
     top: 1%;
     padding: 0;
-    width: 33%;
+    width: 20%;
     background: rgba(255,255,255,.95);
     border: 2px  solid rgba(0,0,0,0.5);
     box-shadow: 0 2px 2px black;
@@ -20,6 +20,30 @@
     font-size: 1rem;
     margin: -2px 0 0 -1.5%;
 }
+#jiralyzer .collapser{
+    transition: all .3s ease-in;
+    position: absolute;
+    top: 2px;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 10px 10px 0 10px;
+    border-color: rgb(255, 255, 255) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0);
+}
+#jiralyzer.collapsed .collapser{
+    border-width: 8px 0 8px 10px;
+    border-color: transparent transparent transparent rgb(255, 255, 255);
+}
+#jiralyzer .jl-content{
+    transition: all;
+    height: auto;
+    overflow: hidden;
+}
+#jiralyzer.collapsed .jl-content{
+    height: 0;
+}
+
 #jiralyzer p{
     padding: 2%;
 }

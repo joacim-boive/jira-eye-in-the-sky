@@ -6,9 +6,10 @@ var labelOne = '';
 var labelTwo = '';
 var thisMessage = null;
 var thisMessageHolder = null;
+var jiralyzer = null;
 
 chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
+    function (request, sender, sendResponse) {
         var result = request.result;
 
         isActive = +result.active;
@@ -23,7 +24,7 @@ chrome.runtime.onMessage.addListener(
         localStorage.setItem('labelTwo', labelTwo);
     });
 
-function init(){
+function init() {
     var thisSprint = {};
 
 //    // select the target node
@@ -61,7 +62,7 @@ function init(){
             }
         });
 
-        sprints.forEach(function(sprint, index){
+        sprints.forEach(function (sprint, index) {
             html += sprint.html;
         });
 
@@ -120,18 +121,18 @@ function init(){
                     thatSprint.totalHours += hoursActual;
 
 
-                    if(listIssue){
-                        for(var x = 0, labelLen = issue.fields.labels.length; x < labelLen; x++){
+                    if (listIssue) {
+                        for (var x = 0, labelLen = issue.fields.labels.length; x < labelLen; x++) {
                             /**
                              * NOTE: This will count the same hours "twice" if the issue has both labelOne and labelTwo.
                              */
-                            if(issue.fields.labels[x] === labelOne){
+                            if (issue.fields.labels[x] === labelOne) {
                                 thatSprint[labelOne].count++;
                                 thatSprint[labelOne].hours += hoursActual;
 
                                 labels.push(labelOne);
                             }
-                            if(issue.fields.labels[x] === labelTwo){
+                            if (issue.fields.labels[x] === labelTwo) {
                                 thatSprint[labelTwo].count++;
                                 thatSprint[labelTwo].hours += hoursActual;
 
@@ -139,7 +140,7 @@ function init(){
                             }
                         }
 
-                        if(labels.length === 0){
+                        if (labels.length === 0) {
                             thatSprint.missingLabels++;
                             console.warn('Missing labels: ' + key);
                         }
@@ -150,11 +151,11 @@ function init(){
 
 
                 html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and type != sub-task') + '">' + thatSprint.sprintName + ' : ' + thatSprint.sprintId + '</a></li><ul>';
-                html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') +'">' + labelOne + ': ' + thatSprint[labelOne].count + ' / ' +thatSprint[labelOne].hours + 'h</a>';
-                html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') +'">' + labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' +thatSprint[labelTwo].hours + 'h</a>';
+                html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' + labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h</a>';
+                html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' + labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h</a>';
 
-                if(thatSprint.missingLabels > 0){
-                    html+= '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo + ') or labels is Empty) and type != sub-task') +'"><span class="hint--top hint--warning hint--bounce" aria-label="Click to show JIRAs that are missing the ' + labelOne + ' & ' + labelTwo + ' label(s)">Missing labels - ' + thatSprint.missingLabels + '</span></a>'
+                if (thatSprint.missingLabels > 0) {
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo + ') or labels is Empty) and type != sub-task') + '"><span class="hint--top hint--warning hint--bounce" aria-label="Click to show JIRAs that are missing the ' + labelOne + ' & ' + labelTwo + ' label(s)">Missing labels - ' + thatSprint.missingLabels + '</span></a>'
                 }
                 html += '</ul></ul>';
 
@@ -169,13 +170,13 @@ function init(){
     });
 }
 
-function messageSystem(){
+function messageSystem() {
     var thisId = 'jiralyzer';
 
     function dragStart(event) {
         var style = window.getComputedStyle(event.target, null);
         event.dataTransfer.setData('text/plain',
-            (parseInt(style.getPropertyValue('left'),10) - event.clientX) + ',' + (parseInt(style.getPropertyValue('top'),10) - event.clientY));
+            (parseInt(style.getPropertyValue('left'), 10) - event.clientX) + ',' + (parseInt(style.getPropertyValue('top'), 10) - event.clientY));
     }
 
     function dragOver(event) {
@@ -187,52 +188,61 @@ function messageSystem(){
         var offset = event.dataTransfer.getData('text/plain').split(',');
         var dm = document.getElementById(thisId);
 
-        dm.style.left = (event.clientX + parseInt(offset[0],10)) + 'px';
-        dm.style.top = (event.clientY + parseInt(offset[1],10)) + 'px';
+        dm.style.left = (event.clientX + parseInt(offset[0], 10)) + 'px';
+        dm.style.top = (event.clientY + parseInt(offset[1], 10)) + 'px';
 
         event.preventDefault();
         return false;
     }
 
-    $('body').append('<aside draggable="true" id="' + thisId + '"><h1>JIRALyzer - Planning</h1><div class="jl-content"><p>Loading...</p></div></aside>');
+    $('body').append('<aside draggable="true" id="' + thisId + '"><h1><div class="collapser"></div>JIRALyzer - Planning</h1><div class="jl-content"><p>Loading...</p></div></aside>');
+
+    jiralyzer = $('#' + thisId);
 
     thisMessage = document.getElementById(thisId);
-    thisMessageHolder =  thisMessage.querySelector('.jl-content');
+    thisMessageHolder = thisMessage.querySelector('.jl-content');
 
-    thisMessage.addEventListener('dragstart',dragStart,false);
-    document.body.addEventListener('dragover',dragOver,false);
-    document.body.addEventListener('drop',drop,false);
+    thisMessage.addEventListener('dragstart', dragStart, false);
+    document.body.addEventListener('dragover', dragOver, false);
+    document.body.addEventListener('drop', drop, false);
 }
 
-function launch(){
-    if(window.location.pathname.toLowerCase() !== '/secure/rapidboard.jspa'){
+function eventHandlers() {
+    jiralyzer.find('h1').on('click', function () {
+        jiralyzer.toggleClass('collapsed');
+    });
+}
+
+function launch() {
+    if (window.location.pathname.toLowerCase() !== '/secure/rapidboard.jspa') {
         console.info('JIRALyser: Wrong view, needs to be in /secure/RapidBoard.jspa');
         return;
     }
 
-    if(isActive !== 1){
+    if (isActive !== 1) {
         isActive = parseInt(localStorage.getItem('isActive')) || 0;
 
-        if(isActive !== 1){
-           console.info('JIRALyser: is disabled in the extension');
-           return;
-       }else{
-           url = localStorage.getItem('url');
-           labelOne = localStorage.getItem('labelOne');
-           labelTwo = localStorage.getItem('labelTwo');
+        if (isActive !== 1) {
+            console.info('JIRALyser: is disabled in the extension');
+            return;
+        } else {
+            url = localStorage.getItem('url');
+            labelOne = localStorage.getItem('labelOne');
+            labelTwo = localStorage.getItem('labelTwo');
 
-           messageSystem();
-       }
+            messageSystem();
+            eventHandlers();
+        }
     }
 
-    if(url === '' || window.location.href.indexOf(url) === -1){
+    if (url === '' || window.location.href.indexOf(url) === -1) {
         console.log('wrong url: ' + window.location.href);
         return;
     }
 
     if (!$('.ghx-sprint-group > div[data-sprint-id]').size()) {
         window.requestAnimationFrame(launch);
-    }else{
+    } else {
         $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
         init();
     }

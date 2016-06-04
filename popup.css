@@ -38,7 +38,7 @@ label.toggle {
 .item.animate-enter-leave.ng-leave.ng-leave-active,
 .item.animate-enter-leave.ng-enter {
 	opacity: 0;
-	line-height: 0px;
+	line-height: 0;
 	top: -30px;
 }
 
@@ -47,4 +47,8 @@ label.toggle {
 	opacity: 1;
 	line-height: 50px;
 	top: 0;
+}
+
+.bar-jira{
+    background: rgb(32, 80, 129);
 }
