@@ -7,6 +7,7 @@ var labelTwo = '';
 var thisMessage = null;
 var thisMessageHolder = null;
 var jiralyzer = null;
+var isSetup = false;
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
@@ -24,25 +25,23 @@ chrome.runtime.onMessage.addListener(
         localStorage.setItem('labelTwo', labelTwo);
     });
 
+function debounce(fn, delay) {
+    var timer = null;
+    return function () {
+        var context = this, args = arguments;
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            fn.apply(context, args);
+        }, delay);
+    };
+}
+
 function init() {
     var thisSprint = {};
 
-//    // select the target node
-//    var target = document.querySelector('#some-id');
-//
-//// create an observer instance
-//    var observer = new MutationObserver(function(mutations) {
-//        mutations.forEach(function(mutation) {
-//            console.log(mutation.type);
-//        });
-//    });
-//
-//// configuration of the observer:
-//    var config = { attributes: true, childList: true, characterData: true }
-//
-//// pass in the target node, as well as the observer options
-//    observer.observe(target, config);
+    var sprints = [];
 
+    thisMessageHolder.innerHTML = '<p>Loading...</p>';
 
     $(document).ajaxStop(function () {
         var totalTimer = '';
@@ -67,6 +66,8 @@ function init() {
         });
 
         thisMessageHolder.innerHTML = html;
+
+        isSetup = true;
     });
 
     $sprints.each(function getListOfSprints(index, sprint) {
@@ -149,7 +150,6 @@ function init() {
                     }
                 });
 
-
                 html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and type != sub-task') + '">' + thatSprint.sprintName + ' : ' + thatSprint.sprintId + '</a></li><ul>';
                 html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' + labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h</a>';
                 html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' + labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h</a>';
@@ -195,7 +195,7 @@ function messageSystem() {
         return false;
     }
 
-    $('body').append('<aside draggable="true" id="' + thisId + '"><h1><div class="collapser"></div>JIRALyzer - Planning</h1><div class="jl-content"><p>Loading...</p></div></aside>');
+    $('body').append('<aside draggable="true" id="' + thisId + '"><h1><div class="collapser"></div>JIRALyzer - Planning</h1><div class="jl-content"></div></aside>');
 
     jiralyzer = $('#' + thisId);
 
@@ -211,6 +211,32 @@ function eventHandlers() {
     jiralyzer.find('h1').on('click', function () {
         jiralyzer.toggleClass('collapsed');
     });
+
+    var target = document.querySelector('#ghx-content-group');
+
+// create an observer instance
+    var observer = new MutationObserver(function(mutations) {
+        if(!isSetup){
+            return;
+        }
+
+        mutations.forEach(function(mutation) {
+            var entry = {
+                mutation: mutation,
+                el: mutation.target,
+                value: mutation.target.textContent,
+                oldValue: mutation.oldValue
+            };
+            console.log('Recording mutation:', entry);
+        });
+        debounce(init(), 1000);
+    });
+
+// configuration of the observer:
+    var config = { attributes: true, childList: true, characterData: true };
+
+// pass in the target node, as well as the observer options
+    observer.observe(target, config);
 }
 
 function launch() {
@@ -231,7 +257,6 @@ function launch() {
             labelTwo = localStorage.getItem('labelTwo');
 
             messageSystem();
-            eventHandlers();
         }
     }
 
@@ -244,6 +269,8 @@ function launch() {
         window.requestAnimationFrame(launch);
     } else {
         $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
+
+        eventHandlers();
         init();
     }
 }
