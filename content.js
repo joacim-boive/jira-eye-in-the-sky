@@ -38,8 +38,14 @@ function debounce(fn, delay) {
 
 function init() {
     var thisSprint = {};
-
     var sprints = [];
+
+    if(!$('.ghx-sprint-group > div[data-sprint-id]').size()){
+        jiralyzer.hide();
+        return;
+    }
+
+    jiralyzer.show();
 
     thisMessageHolder.innerHTML = '<p>Loading...</p>';
 
@@ -268,8 +274,8 @@ function launch() {
     if (!$('.ghx-sprint-group > div[data-sprint-id]').size()) {
         window.requestAnimationFrame(launch);
     } else {
-        $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
 
+        $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
         eventHandlers();
         init();
     }
