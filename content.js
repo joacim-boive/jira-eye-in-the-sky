@@ -28,20 +28,20 @@ function init() {
     var thisSprint = {};
 
 //    // select the target node
-//    var target = document.querySelector('#some-id');
+    var jiraView = document.getElementById('ghx-rabid');
 //
 //// create an observer instance
-//    var observer = new MutationObserver(function(mutations) {
-//        mutations.forEach(function(mutation) {
-//            console.log(mutation.type);
-//        });
-//    });
+    var jiraViewObserver = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            console.log(mutation.type);
+        });
+    });
 //
 //// configuration of the observer:
-//    var config = { attributes: true, childList: true, characterData: true }
+    var config = {attributes: true, childList: false, characterData: false};
 //
 //// pass in the target node, as well as the observer options
-//    observer.observe(target, config);
+    jiraViewObserver.observe(jiraView, config);
 
 
     $(document).ajaxStop(function () {
@@ -214,8 +214,15 @@ function eventHandlers() {
 }
 
 function launch() {
-    if (window.location.pathname.toLowerCase() !== '/secure/rapidboard.jspa') {
-        console.info('JIRALyser: Wrong view, needs to be in /secure/RapidBoard.jspa');
+    if (window.location.search.toLowerCase().indexOf('&view=planning') === -1) {
+        console.info('JIRALyser: Wrong view, needs to be in /secure/RapidBoard.jspa & the planning view');
+
+        try {
+            jiralyzer.hide();
+        } catch (e) {
+
+        }
+
         return;
     }
 
@@ -243,7 +250,21 @@ function launch() {
     if (!$('.ghx-sprint-group > div[data-sprint-id]').size()) {
         window.requestAnimationFrame(launch);
     } else {
+        (function (history) {
+            var pushState = history.pushState;
+            history.pushState = function (state) {
+                if (typeof history.onpushstate == "function") {
+                    history.onpushstate({state: state});
+                }
+                debugger;
+                // whatever else you want to do
+                // maybe call onhashchange e.handler
+                return pushState.apply(history, arguments);
+            }
+        })(window.history);
+
         $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
+        eventHandlers();
         init();
     }
 }
