@@ -22,11 +22,11 @@ function reload() {
             chrome.browserAction.setIcon({path: "off.png"});
         }
 
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            chrome.tabs.sendMessage(tabs[0].id, {'result': result}, function(response) {
-                console.log(response.farewell);
-            });
-        });
+        //chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        //    chrome.tabs.sendMessage(tabs[0].id, {'result': result}, function(response) {
+        //        //console.log(response.farewell);
+        //    });
+        //});
 
     });
 }
