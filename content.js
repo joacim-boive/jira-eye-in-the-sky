@@ -10,22 +10,6 @@
     var jiralyzer = null;
     var isSetup = false;
 
-    chrome.runtime.onMessage.addListener(
-        function (request, sender, sendResponse) {
-            var result = request.result;
-
-            isActive = +result.active;
-            url = result.url;
-            labelOne = result.labelOne;
-            labelTwo = result.labelTwo;
-
-
-            localStorage.setItem('isActive', isActive);
-            localStorage.setItem('url', url);
-            localStorage.setItem('labelOne', labelOne);
-            localStorage.setItem('labelTwo', labelTwo);
-        });
-
     function debounce(fn, delay) {
         var timer = null;
         return function () {
