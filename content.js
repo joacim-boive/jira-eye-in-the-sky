@@ -5,10 +5,15 @@
     var url = '';
     var labelOne = '';
     var labelTwo = '';
+    var spreadSheet = '';
+    var spreadSheetData = {};
+    var availability = {};
     var thisMessage = null;
     var thisMessageHolder = null;
     var jiralyzer = null;
     var isSetup = false;
+
+    var spreadSheetRowID = ['sprint','labelOne', 'labelTwo'];
 
     function debounce(fn, delay) {
         var timer = null;
@@ -244,10 +249,11 @@
                     console.info('JIRALyser: is disabled in the extension');
                     return;
                 } else {
-                    chrome.storage.local.get(['url', 'labelOne', 'labelTwo'], function (setup) {
+                    chrome.storage.local.get(['url', 'labelOne', 'labelTwo', 'spreadSheet'], function (setup) {
                         url = setup.url;
                         labelOne = setup.labelOne;
                         labelTwo = setup.labelTwo;
+                        spreadSheet = setup.spreadSheet;
 
                         if (url === '' || window.location.href.indexOf(url) === -1) {
                             console.log('wrong url: ' + window.location.href);
@@ -259,16 +265,49 @@
                         } else {
                             $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
 
-                            messageSystem();
-                            eventHandlers();
-                            init();
+                            result = 'Sprint%2C%2C14%2C15%2C16%2C17%2C18%2C19%2C20%2C21%0D%0ABackend%2C%2C235%2C221%2C165%2C84%2C84%2C112%2C160%2C112%0D%0AFrontend%2C%2C202%2C193%2C101%2C162%2C140%2C73%2C151%2C168%0D%0ATotal%2C%2C437%2C414%2C266%2C246%2C224%2C185%2C311%2C280%0D%0AVelocity%2C%2C278%2C263%2C%2C%2C%2C%2C%2C';
+
+                            var id = '';
+                            //result = encodeURIComponent(result);
+                            result = result.split('%0D%0A');
+                            debugger;
+                            for(var x = 0; x < 3; x++){ //There are only support for two labels right now
+                                //Looping the rows
+                                var row = result[x];
+                                var data = row.split('%2C');
+
+                                spreadSheetData[spreadSheetRowID[x]] = [];
+                                for(var y=2, dataLen = data.length; y < dataLen; y++){
+                                    spreadSheetData[spreadSheetRowID[x]].push(data[y]);
+                                }
+                            }
+
+                            $.get(spreadSheet)
+                                .done(function (result) {
+                                    var id = '';
+                                    result = encodeURIComponent(result);
+                                    result = result.split('%0D%0A');
+debugger;
+                                    result.forEach(function(i, arr){
+                                        id = arr.split('%2C%2C')[i+1];
+                                        availability[id] = {};
+                                        availability[id][labelOne] = 0;
+                                        availability[id][labelTwo] = 0;
+
+                                    });
+                                    messageSystem();
+                                    eventHandlers();
+                                    init();
+                                })
+                                .fail(function () {
+                                    console.log('failed to get spreadsheet');
+                                    debugger;
+                                });
                         }
                     });
                 }
             });
         }
-
-
     }
 
     launch();
