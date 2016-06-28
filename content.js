@@ -82,6 +82,10 @@
             thisSprint[labelTwo].count = 0;
             thisSprint[labelTwo].hours = 0;
 
+            thisSprint['hasDouble'] = {};
+            thisSprint['hasDouble'].count = 0;
+            thisSprint['hasDouble'].hours = 0;
+
             $.ajax({
                     url: url + '/rest/api/2/search',
                     type: 'GET',
@@ -104,8 +108,11 @@
                     var $timeHolder = null;
                     var listIssue = null;
                     var issue = {};
+                    var doubleLabels = [];
 
                     for (var z = 0, dataIssuesLen = data.issues.length; z < dataIssuesLen; z++) {
+                        doubleLabels = [];
+
                         issue = data.issues[z];
 
                         labels = [];
@@ -128,6 +135,8 @@
                                  * NOTE: This will count the same hours "twice" if the issue has both labelOne and labelTwo.
                                  */
                                 if (issue.fields.labels[x] === labelOne) {
+                                    doubleLabels.push(labelOne);
+
                                     thatSprint[labelOne].count++;
                                     thatSprint[labelOne].hours += hoursActual;
                                     thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]['labelOne'];
@@ -136,6 +145,8 @@
                                     labels.push(labelOne);
                                 }
                                 if (issue.fields.labels[x] === labelTwo) {
+                                    doubleLabels.push(labelTwo);
+
                                     thatSprint[labelTwo].count++;
                                     thatSprint[labelTwo].hours += hoursActual;
                                     thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]['labelTwo'];
@@ -149,17 +160,36 @@
                                 console.warn('Missing labels: ' + key);
                             }
 
+                            if(doubleLabels.length > 1){
+                                thatSprint['hasDouble'].count++;
+                                thatSprint['hasDouble'].hours += hoursActual;
+                            }
+
                             $(listIssue).closest('.js-issue').attr('data-labels', labels.join(','));
                         }
                     }
 
-                    html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and type != sub-task') + '">' + thatSprint.sprintName + ' : ' + thatSprint.sprintId + '</a></li><ul>';
-                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' + labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h of ' + thatSprint[labelOne].available + 'h</a>';
-                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' + labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h of ' + thatSprint[labelTwo].available + 'h</a>';
+                    html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and type != sub-task') + '">' +
+                        thatSprint.sprintName + ' : ' + thatSprint.sprintId + '</a></li><ul>';
+
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' +
+                        labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h of ' + thatSprint[labelOne].available + 'h</a>';
+
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' +
+                        labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h of ' + thatSprint[labelTwo].available + 'h</a>';
+
+                    if(thatSprint['hasDouble'].count > 0){
+                        html += '<li class="warning"><a target="_blank" href="' + url + '/issues/?jql=sprint=' +
+                            encodeURIComponent(thatSprint.sprintId + ' and (labels = "' + labelOne + '" and labels = "' + labelTwo + '")') + '">' + labelOne + ' & ' + labelTwo + ': ' +
+                            thatSprint['hasDouble'].count + ' / ' +  thatSprint['hasDouble'].hours + 'h</a>';
+                    }
 
                     if (thatSprint.missingLabels > 0) {
-                        html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo + ') or labels is Empty) and type != sub-task') + '"><span class="hint--top hint--warning hint--bounce" aria-label="Click to show JIRAs that are missing the ' + labelOne + ' & ' + labelTwo + ' label(s)">Missing labels - ' + thatSprint.missingLabels + '</span></a>'
+                        html += '<li class="error"><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo +
+                                ') or labels is Empty) and type != sub-task') + '"><span class="hint--top hint--warning hint--bounce" aria-label="Click to show JIRAs that are missing the ' +
+                            labelOne + ' & ' + labelTwo + ' label(s)">Missing labels - ' + thatSprint.missingLabels + '</span></a>'
                     }
+
                     html += '</ul></ul>';
 
                     thatSprint.html = html;

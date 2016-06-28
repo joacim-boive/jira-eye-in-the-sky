@@ -50,12 +50,28 @@
 }
 #jiralyzer ul {
     margin: 0 0 2% 0;
-    padding: 0 0 0 22px;
+    padding: 0 0 0 2%;
 }
 #jiralyzer ul:first-child{
     margin-top: 2%;
 }
 
+#jiralyzer li{
+    list-style: none;
+}
+
+#jiralyzer .jl-content > ul > li:first-child{
+    font-weight: bold;
+}
+
 div[data-labels=""] {
     background: rgba(171, 66, 66, 0.21);
+}
+
+.warning a{
+    color: rgb(255, 145, 0);
+}
+
+.error a{
+    color: rgb(255, 47, 13);
 }
