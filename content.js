@@ -13,7 +13,7 @@
     var jiralyzer = null;
     var isSetup = false;
 
-    var spreadSheetRowID = ['sprint','labelOne', 'labelTwo'];
+    var spreadSheetRowID = ['sprint', 'labelOne', 'labelTwo'];
 
     function debounce(fn, delay) {
         var timer = null;
@@ -87,6 +87,7 @@
                     type: 'GET',
                     dataType: 'json',
                     thatSprint: thisSprint,
+                    spreadSheetData: spreadSheetData,
                     data: {
                         'jql': 'sprint=' + thisSprint.sprintId + ' AND type != Sub-task'
                     }
@@ -102,8 +103,11 @@
                     var key = '';
                     var $timeHolder = null;
                     var listIssue = null;
+                    var issue = {};
 
-                    data.issues.forEach(function getEachIssue(issue) {
+                    for (var z = 0, dataIssuesLen = data.issues.length; z < dataIssuesLen; z++) {
+                        issue = data.issues[z];
+
                         labels = [];
                         hoursIncludingSubTasks = issue.fields.aggregatetimeestimate / 3600;
                         key = issue.key;
@@ -126,12 +130,15 @@
                                 if (issue.fields.labels[x] === labelOne) {
                                     thatSprint[labelOne].count++;
                                     thatSprint[labelOne].hours += hoursActual;
+                                    thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]['labelOne'];
+
 
                                     labels.push(labelOne);
                                 }
                                 if (issue.fields.labels[x] === labelTwo) {
                                     thatSprint[labelTwo].count++;
                                     thatSprint[labelTwo].hours += hoursActual;
+                                    thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]['labelTwo'];
 
                                     labels.push(labelTwo);
                                 }
@@ -144,11 +151,11 @@
 
                             $(listIssue).closest('.js-issue').attr('data-labels', labels.join(','));
                         }
-                    });
+                    }
 
                     html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and type != sub-task') + '">' + thatSprint.sprintName + ' : ' + thatSprint.sprintId + '</a></li><ul>';
-                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' + labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h</a>';
-                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' + labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h</a>';
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' + labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h of ' + thatSprint[labelOne].available + 'h</a>';
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' + labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h of ' + thatSprint[labelTwo].available + 'h</a>';
 
                     if (thatSprint.missingLabels > 0) {
                         html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo + ') or labels is Empty) and type != sub-task') + '"><span class="hint--top hint--warning hint--bounce" aria-label="Click to show JIRAs that are missing the ' + labelOne + ' & ' + labelTwo + ' label(s)">Missing labels - ' + thatSprint.missingLabels + '</span></a>'
@@ -165,6 +172,10 @@
 
         });
     }
+
+    //function findSprintAvailabilityData(id){
+    // for(var n = 0, spread)
+    //}
 
     function messageSystem() {
         var thisId = 'jiralyzer';
@@ -264,37 +275,40 @@
                             window.requestAnimationFrame(launch);
                         } else {
                             $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
-
-                            result = 'Sprint%2C%2C14%2C15%2C16%2C17%2C18%2C19%2C20%2C21%0D%0ABackend%2C%2C235%2C221%2C165%2C84%2C84%2C112%2C160%2C112%0D%0AFrontend%2C%2C202%2C193%2C101%2C162%2C140%2C73%2C151%2C168%0D%0ATotal%2C%2C437%2C414%2C266%2C246%2C224%2C185%2C311%2C280%0D%0AVelocity%2C%2C278%2C263%2C%2C%2C%2C%2C%2C';
-
-                            var id = '';
-                            //result = encodeURIComponent(result);
-                            result = result.split('%0D%0A');
-                            debugger;
-                            for(var x = 0; x < 3; x++){ //There are only support for two labels right now
-                                //Looping the rows
-                                var row = result[x];
-                                var data = row.split('%2C');
-
-                                spreadSheetData[spreadSheetRowID[x]] = [];
-                                for(var y=2, dataLen = data.length; y < dataLen; y++){
-                                    spreadSheetData[spreadSheetRowID[x]].push(data[y]);
-                                }
-                            }
-
                             $.get(spreadSheet)
                                 .done(function (result) {
-                                    var id = '';
+                                    var sprintNames = ['',''];
+                                    console.table(result);
+
                                     result = encodeURIComponent(result);
                                     result = result.split('%0D%0A');
-debugger;
-                                    result.forEach(function(i, arr){
-                                        id = arr.split('%2C%2C')[i+1];
-                                        availability[id] = {};
-                                        availability[id][labelOne] = 0;
-                                        availability[id][labelTwo] = 0;
 
-                                    });
+                                    for (var x = 0; x < 3; x++) { //There are only support for two labels right now
+                                        //Looping the rows
+                                        var row = result[x];
+                                        var data = row.split('%2C');
+
+                                        spreadSheetData[spreadSheetRowID[x]] = [];
+
+                                        if(x === 0){
+                                            for (var r = 2, sprintIdLen = data.length; r < sprintIdLen; r++) {
+                                                spreadSheetData[data[r]] = {};
+                                                spreadSheetData[data[r]][spreadSheetRowID[1]] = 0;
+                                                spreadSheetData[data[r]][spreadSheetRowID[2]] = 0;
+
+                                                sprintNames.push(data[r]);
+                                            }
+                                        }else{
+                                            for (var q = 2, dataLen = data.length; q < dataLen; q++) {
+                                                //spreadSheetData[spreadSheetRowID[x]].push(data[q]);
+                                                spreadSheetData[sprintNames[q]][spreadSheetRowID[x]] = data[q];
+                                            }
+                                        }
+
+                                    }
+
+                                    console.table(spreadSheetData);
+
                                     messageSystem();
                                     eventHandlers();
                                     init();
