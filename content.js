@@ -5,10 +5,15 @@
     var url = '';
     var labelOne = '';
     var labelTwo = '';
+    var spreadSheet = '';
+    var spreadSheetData = {};
+    var availability = {};
     var thisMessage = null;
     var thisMessageHolder = null;
     var jiralyzer = null;
     var isSetup = false;
+
+    var spreadSheetRowID = ['sprint', 'labelOne', 'labelTwo'];
 
     function debounce(fn, delay) {
         var timer = null;
@@ -77,11 +82,16 @@
             thisSprint[labelTwo].count = 0;
             thisSprint[labelTwo].hours = 0;
 
+            thisSprint['hasDouble'] = {};
+            thisSprint['hasDouble'].count = 0;
+            thisSprint['hasDouble'].hours = 0;
+
             $.ajax({
                     url: url + '/rest/api/2/search',
                     type: 'GET',
                     dataType: 'json',
                     thatSprint: thisSprint,
+                    spreadSheetData: spreadSheetData,
                     data: {
                         'jql': 'sprint=' + thisSprint.sprintId + ' AND type != Sub-task'
                     }
@@ -97,8 +107,14 @@
                     var key = '';
                     var $timeHolder = null;
                     var listIssue = null;
+                    var issue = {};
+                    var doubleLabels = [];
 
-                    data.issues.forEach(function getEachIssue(issue) {
+                    for (var z = 0, dataIssuesLen = data.issues.length; z < dataIssuesLen; z++) {
+                        doubleLabels = [];
+
+                        issue = data.issues[z];
+
                         labels = [];
                         hoursIncludingSubTasks = issue.fields.aggregatetimeestimate / 3600;
                         key = issue.key;
@@ -119,14 +135,21 @@
                                  * NOTE: This will count the same hours "twice" if the issue has both labelOne and labelTwo.
                                  */
                                 if (issue.fields.labels[x] === labelOne) {
+                                    doubleLabels.push(labelOne);
+
                                     thatSprint[labelOne].count++;
                                     thatSprint[labelOne].hours += hoursActual;
+                                    thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]['labelOne'];
+
 
                                     labels.push(labelOne);
                                 }
                                 if (issue.fields.labels[x] === labelTwo) {
+                                    doubleLabels.push(labelTwo);
+
                                     thatSprint[labelTwo].count++;
                                     thatSprint[labelTwo].hours += hoursActual;
+                                    thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]['labelTwo'];
 
                                     labels.push(labelTwo);
                                 }
@@ -137,17 +160,36 @@
                                 console.warn('Missing labels: ' + key);
                             }
 
+                            if(doubleLabels.length > 1){
+                                thatSprint['hasDouble'].count++;
+                                thatSprint['hasDouble'].hours += hoursActual;
+                            }
+
                             $(listIssue).closest('.js-issue').attr('data-labels', labels.join(','));
                         }
-                    });
+                    }
 
-                    html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and type != sub-task') + '">' + thatSprint.sprintName + ' : ' + thatSprint.sprintId + '</a></li><ul>';
-                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' + labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h</a>';
-                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' + labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h</a>';
+                    html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and type != sub-task') + '">' +
+                        thatSprint.sprintName + ' : ' + thatSprint.sprintId + '</a></li><ul>';
+
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' +
+                        labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h of ' + thatSprint[labelOne].available + 'h</a>';
+
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' +
+                        labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h of ' + thatSprint[labelTwo].available + 'h</a>';
+
+                    if(thatSprint['hasDouble'].count > 0){
+                        html += '<li class="warning"><a target="_blank" href="' + url + '/issues/?jql=sprint=' +
+                            encodeURIComponent(thatSprint.sprintId + ' and (labels = "' + labelOne + '" and labels = "' + labelTwo + '")') + '">' + labelOne + ' & ' + labelTwo + ': ' +
+                            thatSprint['hasDouble'].count + ' / ' +  thatSprint['hasDouble'].hours + 'h</a>';
+                    }
 
                     if (thatSprint.missingLabels > 0) {
-                        html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo + ') or labels is Empty) and type != sub-task') + '"><span class="hint--top hint--warning hint--bounce" aria-label="Click to show JIRAs that are missing the ' + labelOne + ' & ' + labelTwo + ' label(s)">Missing labels - ' + thatSprint.missingLabels + '</span></a>'
+                        html += '<li class="error"><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and (labels not in(' + labelOne + ', ' + labelTwo +
+                                ') or labels is Empty) and type != sub-task') + '"><span class="hint--top hint--warning hint--bounce" aria-label="Click to show JIRAs that are missing the ' +
+                            labelOne + ' & ' + labelTwo + ' label(s)">Missing labels - ' + thatSprint.missingLabels + '</span></a>'
                     }
+
                     html += '</ul></ul>';
 
                     thatSprint.html = html;
@@ -160,6 +202,10 @@
 
         });
     }
+
+    //function findSprintAvailabilityData(id){
+    // for(var n = 0, spread)
+    //}
 
     function messageSystem() {
         var thisId = 'jiralyzer';
@@ -244,10 +290,11 @@
                     console.info('JIRALyser: is disabled in the extension');
                     return;
                 } else {
-                    chrome.storage.local.get(['url', 'labelOne', 'labelTwo'], function (setup) {
+                    chrome.storage.local.get(['url', 'labelOne', 'labelTwo', 'spreadSheet'], function (setup) {
                         url = setup.url;
                         labelOne = setup.labelOne;
                         labelTwo = setup.labelTwo;
+                        spreadSheet = setup.spreadSheet;
 
                         if (url === '' || window.location.href.indexOf(url) === -1) {
                             console.log('wrong url: ' + window.location.href);
@@ -258,17 +305,53 @@
                             window.requestAnimationFrame(launch);
                         } else {
                             $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
+                            $.get(spreadSheet)
+                                .done(function (result) {
+                                    var sprintNames = ['',''];
+                                    console.table(result);
 
-                            messageSystem();
-                            eventHandlers();
-                            init();
+                                    result = encodeURIComponent(result);
+                                    result = result.split('%0D%0A');
+
+                                    for (var x = 0; x < 3; x++) { //There are only support for two labels right now
+                                        //Looping the rows
+                                        var row = result[x];
+                                        var data = row.split('%2C');
+
+                                        spreadSheetData[spreadSheetRowID[x]] = [];
+
+                                        if(x === 0){
+                                            for (var r = 2, sprintIdLen = data.length; r < sprintIdLen; r++) {
+                                                spreadSheetData[data[r]] = {};
+                                                spreadSheetData[data[r]][spreadSheetRowID[1]] = 0;
+                                                spreadSheetData[data[r]][spreadSheetRowID[2]] = 0;
+
+                                                sprintNames.push(data[r]);
+                                            }
+                                        }else{
+                                            for (var q = 2, dataLen = data.length; q < dataLen; q++) {
+                                                //spreadSheetData[spreadSheetRowID[x]].push(data[q]);
+                                                spreadSheetData[sprintNames[q]][spreadSheetRowID[x]] = data[q];
+                                            }
+                                        }
+
+                                    }
+
+                                    console.table(spreadSheetData);
+
+                                    messageSystem();
+                                    eventHandlers();
+                                    init();
+                                })
+                                .fail(function () {
+                                    console.log('failed to get spreadsheet');
+                                    debugger;
+                                });
                         }
                     });
                 }
             });
         }
-
-
     }
 
     launch();
