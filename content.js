@@ -139,7 +139,7 @@
 
                                     thatSprint[labelOne].count++;
                                     thatSprint[labelOne].hours += hoursActual;
-                                    thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]['labelOne'];
+                                    thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelOne];
 
 
                                     labels.push(labelOne);
@@ -149,7 +149,7 @@
 
                                     thatSprint[labelTwo].count++;
                                     thatSprint[labelTwo].hours += hoursActual;
-                                    thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]['labelTwo'];
+                                    thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelTwo];
 
                                     labels.push(labelTwo);
                                 }
@@ -305,7 +305,10 @@
                             window.requestAnimationFrame(launch);
                         } else {
                             $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
-                            $.get(spreadSheet)
+                            $.get({
+                                url: spreadSheet,
+                                setup: setup
+                            })
                                 .done(function (result) {
                                     var sprintNames = ['',''];
                                     console.table(result);
@@ -323,15 +326,15 @@
                                         if(x === 0){
                                             for (var r = 2, sprintIdLen = data.length; r < sprintIdLen; r++) {
                                                 spreadSheetData[data[r]] = {};
-                                                spreadSheetData[data[r]][spreadSheetRowID[1]] = 0;
-                                                spreadSheetData[data[r]][spreadSheetRowID[2]] = 0;
+                                                spreadSheetData[data[r]][this.setup[spreadSheetRowID[1]]] = 0;
+                                                spreadSheetData[data[r]][this.setup[spreadSheetRowID[2]]]  = 0;
 
                                                 sprintNames.push(data[r]);
                                             }
                                         }else{
                                             for (var q = 2, dataLen = data.length; q < dataLen; q++) {
                                                 //spreadSheetData[spreadSheetRowID[x]].push(data[q]);
-                                                spreadSheetData[sprintNames[q]][spreadSheetRowID[x]] = data[q];
+                                                spreadSheetData[sprintNames[q]][[this.setup[spreadSheetRowID[x]]]] = data[q];
                                             }
                                         }
 
