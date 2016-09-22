@@ -1,13 +1,11 @@
 (function () {
     var $sprints = null;
-    var sprints = [];
     var isActive = 0;
     var url = '';
     var labelOne = '';
     var labelTwo = '';
     var spreadSheet = '';
     var spreadSheetData = {};
-    var availability = {};
     var thisMessage = null;
     var thisMessageHolder = null;
     var jiralyzer = null;
@@ -109,6 +107,10 @@
                     var listIssue = null;
                     var issue = {};
                     var doubleLabels = [];
+                    var customFields = {};
+
+                    customFields.FE = 'customfield_11604';
+                    customFields.BE = 'customfield_11603';
 
                     for (var z = 0, dataIssuesLen = data.issues.length; z < dataIssuesLen; z++) {
                         doubleLabels = [];
@@ -138,7 +140,13 @@
                                     doubleLabels.push(labelOne);
 
                                     thatSprint[labelOne].count++;
-                                    thatSprint[labelOne].hours += hoursActual;
+
+                                    if(!isNaN(parseInt(issue.fields[customFields[labelOne]]))){
+                                        thatSprint[labelOne].hours += parseInt(issue.fields[customFields[labelOne]]);
+                                    }else{
+                                        thatSprint[labelOne].hours += hoursActual;
+                                    }
+
                                     thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelOne];
 
 
@@ -148,7 +156,14 @@
                                     doubleLabels.push(labelTwo);
 
                                     thatSprint[labelTwo].count++;
-                                    thatSprint[labelTwo].hours += hoursActual;
+
+
+                                    if(!isNaN(parseInt(issue.fields[customFields[labelTwo]]))){
+                                        thatSprint[labelTwo].hours += parseInt(issue.fields[customFields[labelTwo]]);
+                                    }else{
+                                        thatSprint[labelOne].labelTwo += hoursActual;
+                                    }
+
                                     thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelTwo];
 
                                     labels.push(labelTwo);
