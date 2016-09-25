@@ -28,7 +28,7 @@
         var thisSprint = {};
         var sprints = [];
 
-        if (!$('.ghx-sprint-group > div[data-sprint-id]').size()) {
+        if (!$('.ghx-sprint-group > div[data-sprint-id]').length) {
             jiralyzer.hide();
             return;
         }
@@ -145,8 +145,8 @@
                                     if(this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]){
                                         hoursAvailable = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelOne];
                                     }else{
-                                        hoursAvailable = 'Unknown - missing data';
-                                        console.warn('Couldn\'t find data for sprint: ' + thatSprint.sprintName + ' in Google Numbers!\nSprint name wrong in Google Sheet?');
+                                        hoursAvailable = '[Unknown - missing data] ';
+                                        console.warn('Couldn\'t find data for sprint: ' + thatSprint.sprintName + ' in Google Sheet!\nSprint name wrong in Google Sheet?');
                                     }
 
                                     if(!isNaN(parseInt(issue.fields[customFields[labelOne]]))){
@@ -168,8 +168,8 @@
                                     if(this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]){
                                         hoursAvailable = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelTwo];
                                     }else{
-                                        hoursAvailable = 'Unknown - missing data';
-                                        console.warn('Couldn\'t find data for sprint: ' + thatSprint.sprintName + ' in Google Numbers!\nSprint name wrong in Google Sheet?');
+                                        hoursAvailable = '[Unknown - missing data] ';
+                                        console.warn('Couldn\'t find data for sprint: ' + thatSprint.sprintName + ' in Google Sheet!\nSprint name wrong in Google Sheet?');
                                     }
 
 
@@ -331,7 +331,7 @@
                             return;
                         }
 
-                        if (!$('.ghx-sprint-group > div[data-sprint-id]').size()) {
+                        if (!$('.ghx-sprint-group > div[data-sprint-id]').length) {
                             window.requestAnimationFrame(launch);
                         } else {
                             $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
