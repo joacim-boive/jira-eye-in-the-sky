@@ -101,6 +101,7 @@
                     var labels = [];
                     var hoursForStory = 0;
                     var hoursActual = 0;
+                    var hoursAvailable = 0;
                     var hoursIncludingSubTasks = 0;
                     var key = '';
                     var $timeHolder = null;
@@ -141,13 +142,20 @@
 
                                     thatSprint[labelOne].count++;
 
+                                    if(this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]){
+                                        hoursAvailable = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelOne];
+                                    }else{
+                                        hoursAvailable = 'Unknown - missing data';
+                                        console.warn('Couldn\'t find data for sprint: ' + thatSprint.sprintName + ' in Google Numbers!\nSprint name wrong in Google Sheet?');
+                                    }
+
                                     if(!isNaN(parseInt(issue.fields[customFields[labelOne]]))){
                                         thatSprint[labelOne].hours += parseInt(issue.fields[customFields[labelOne]]);
                                     }else{
                                         thatSprint[labelOne].hours += hoursActual;
                                     }
 
-                                    thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelOne];
+                                    thatSprint[labelOne].available = hoursAvailable;
 
 
                                     labels.push(labelOne);
@@ -157,6 +165,13 @@
 
                                     thatSprint[labelTwo].count++;
 
+                                    if(this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)]){
+                                        hoursAvailable = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelTwo];
+                                    }else{
+                                        hoursAvailable = 'Unknown - missing data';
+                                        console.warn('Couldn\'t find data for sprint: ' + thatSprint.sprintName + ' in Google Numbers!\nSprint name wrong in Google Sheet?');
+                                    }
+
 
                                     if(!isNaN(parseInt(issue.fields[customFields[labelTwo]]))){
                                         thatSprint[labelTwo].hours += parseInt(issue.fields[customFields[labelTwo]]);
@@ -164,7 +179,7 @@
                                         thatSprint[labelTwo].hours += hoursActual;
                                     }
 
-                                    thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelTwo];
+                                    thatSprint[labelTwo].available = hoursAvailable;
 
                                     labels.push(labelTwo);
                                 }
