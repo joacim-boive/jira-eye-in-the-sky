@@ -21,7 +21,8 @@
 	}],
 	"permissions": [
 		"storage",
-		"<all_urls>"
+		"http://*//secure/RapidBoard*",
+		"https://*//secure/RapidBoard*"
 	],
 	"web_accessible_resources": [
 		"on.png","off.png"

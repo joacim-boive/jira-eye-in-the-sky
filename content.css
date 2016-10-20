@@ -1,9 +1,11 @@
 #jiralyzer {
     position:  absolute;
-    left: 1%;
-    top: 1%;
+    left: 60px; /*Leave room for the navigation bar*/
+    top: 2%;
+    z-index: 1;
     padding: 0;
     width: 20%;
+    min-width: 200px;
     background: rgba(255,255,255,.95);
     border: 2px  solid rgba(0,0,0,0.5);
     box-shadow: 0 2px 2px black;

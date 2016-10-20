@@ -1,8 +1,8 @@
 /*On install*/
 chrome.runtime.onInstalled.addListener(function () {
-    chrome.storage.local.set({'active': false});
-    chrome.storage.local.set({'labelOne': ''});
-    chrome.storage.local.set({'labelTwo': ''});
+    // chrome.storage.local.set({'active': false});
+    // chrome.storage.local.set({'labelOne': ''});
+    // chrome.storage.local.set({'labelTwo': ''});
     reload();
 });
 
