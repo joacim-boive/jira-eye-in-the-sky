@@ -1,13 +1,11 @@
 (function () {
     var $sprints = null;
-    var sprints = [];
     var isActive = 0;
     var url = '';
     var labelOne = '';
     var labelTwo = '';
     var spreadSheet = '';
     var spreadSheetData = {};
-    var availability = {};
     var thisMessage = null;
     var thisMessageHolder = null;
     var jiralyzer = null;
@@ -30,7 +28,7 @@
         var thisSprint = {};
         var sprints = [];
 
-        if (!$('.ghx-sprint-group > div[data-sprint-id]').size()) {
+        if (!$('.ghx-sprint-group > div[data-sprint-id]').length) {
             jiralyzer.hide();
             return;
         }
@@ -87,15 +85,15 @@
             thisSprint['hasDouble'].hours = 0;
 
             $.ajax({
-                    url: url + '/rest/api/2/search',
-                    type: 'GET',
-                    dataType: 'json',
-                    thatSprint: thisSprint,
-                    spreadSheetData: spreadSheetData,
-                    data: {
-                        'jql': 'sprint=' + thisSprint.sprintId + ' AND type != Sub-task'
-                    }
-                })
+                url: url + '/rest/api/2/search',
+                type: 'GET',
+                dataType: 'json',
+                thatSprint: thisSprint,
+                spreadSheetData: spreadSheetData,
+                data: {
+                    'jql': 'sprint=' + thisSprint.sprintId + ' AND type != Sub-task'
+                }
+            })
                 .done(function getIssuesInCurrentSprint(data) {
                     var that = this;
                     var thatSprint = that.thatSprint;
@@ -109,6 +107,10 @@
                     var listIssue = null;
                     var issue = {};
                     var doubleLabels = [];
+                    var customFields = {};
+
+                    customFields.FE = 'customfield_11604';
+                    customFields.BE = 'customfield_11603';
 
                     for (var z = 0, dataIssuesLen = data.issues.length; z < dataIssuesLen; z++) {
                         doubleLabels = [];
@@ -138,7 +140,13 @@
                                     doubleLabels.push(labelOne);
 
                                     thatSprint[labelOne].count++;
-                                    thatSprint[labelOne].hours += hoursActual;
+
+                                    if (!isNaN(parseInt(issue.fields[customFields[labelOne]]))) {
+                                        thatSprint[labelOne].hours += parseInt(issue.fields[customFields[labelOne]]);
+                                    } else {
+                                        thatSprint[labelOne].hours += hoursActual;
+                                    }
+
                                     thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelOne];
 
 
@@ -148,7 +156,14 @@
                                     doubleLabels.push(labelTwo);
 
                                     thatSprint[labelTwo].count++;
-                                    thatSprint[labelTwo].hours += hoursActual;
+
+
+                                    if (!isNaN(parseInt(issue.fields[customFields[labelTwo]]))) {
+                                        thatSprint[labelTwo].hours += parseInt(issue.fields[customFields[labelTwo]]);
+                                    } else {
+                                        thatSprint[labelOne].labelTwo += hoursActual;
+                                    }
+
                                     thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelTwo];
 
                                     labels.push(labelTwo);
@@ -160,7 +175,7 @@
                                 console.warn('Missing labels: ' + key);
                             }
 
-                            if(doubleLabels.length > 1){
+                            if (doubleLabels.length > 1) {
                                 thatSprint['hasDouble'].count++;
                                 thatSprint['hasDouble'].hours += hoursActual;
                             }
@@ -178,10 +193,10 @@
                     html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' +
                         labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h of ' + thatSprint[labelTwo].available + 'h</a>';
 
-                    if(thatSprint['hasDouble'].count > 0){
+                    if (thatSprint['hasDouble'].count > 0) {
                         html += '<li class="warning"><a target="_blank" href="' + url + '/issues/?jql=sprint=' +
                             encodeURIComponent(thatSprint.sprintId + ' and (labels = "' + labelOne + '" and labels = "' + labelTwo + '")') + '">' + labelOne + ' & ' + labelTwo + ': ' +
-                            thatSprint['hasDouble'].count + ' / ' +  thatSprint['hasDouble'].hours + 'h</a>';
+                            thatSprint['hasDouble'].count + ' / ' + thatSprint['hasDouble'].hours + 'h</a>';
                     }
 
                     if (thatSprint.missingLabels > 0) {
@@ -232,7 +247,7 @@
             return false;
         }
 
-        $('body').append('<aside draggable="true" id="' + thisId + '"><h1><div class="collapser"></div>JIRALyzer - Planning</h1><div class="jl-content"></div></aside>');
+        $('body').append('<aside draggable="true" id="' + thisId + '"><h1><div class="collapser"></div>JIRALyzer - Planning</h1><div class="jl-content"></div><img></aside>');
 
         jiralyzer = $('#' + thisId);
 
@@ -301,7 +316,7 @@
                             return;
                         }
 
-                        if (!$('.ghx-sprint-group > div[data-sprint-id]').size()) {
+                        if (!$('.ghx-sprint-group > div[data-sprint-id]').length) {
                             window.requestAnimationFrame(launch);
                         } else {
                             $sprints = $('.ghx-sprint-group > div[data-sprint-id]');
@@ -310,7 +325,7 @@
                                 setup: setup
                             })
                                 .done(function (result) {
-                                    var sprintNames = ['',''];
+                                    var sprintNames = ['', ''];
                                     console.table(result);
 
                                     result = encodeURIComponent(result);
@@ -323,15 +338,15 @@
 
                                         spreadSheetData[spreadSheetRowID[x]] = [];
 
-                                        if(x === 0){
+                                        if (x === 0) {
                                             for (var r = 2, sprintIdLen = data.length; r < sprintIdLen; r++) {
                                                 spreadSheetData[data[r]] = {};
                                                 spreadSheetData[data[r]][this.setup[spreadSheetRowID[1]]] = 0;
-                                                spreadSheetData[data[r]][this.setup[spreadSheetRowID[2]]]  = 0;
+                                                spreadSheetData[data[r]][this.setup[spreadSheetRowID[2]]] = 0;
 
                                                 sprintNames.push(data[r]);
                                             }
-                                        }else{
+                                        } else {
                                             for (var q = 2, dataLen = data.length; q < dataLen; q++) {
                                                 //spreadSheetData[spreadSheetRowID[x]].push(data[q]);
                                                 spreadSheetData[sprintNames[q]][[this.setup[spreadSheetRowID[x]]]] = data[q];
