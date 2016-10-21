@@ -161,7 +161,7 @@
                                     if (!isNaN(parseInt(issue.fields[customFields[labelTwo]]))) {
                                         thatSprint[labelTwo].hours += parseInt(issue.fields[customFields[labelTwo]]);
                                     } else {
-                                        thatSprint[labelOne].labelTwo += hoursActual;
+                                        thatSprint[labelTwo].hours += hoursActual;
                                     }
 
                                     thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelTwo];
