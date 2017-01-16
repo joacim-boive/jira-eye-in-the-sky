@@ -108,9 +108,18 @@
                     var issue = {};
                     var doubleLabels = [];
                     var customFields = {};
+                    var spreadSheetData = {};
 
                     customFields.FE = 'customfield_11604';
                     customFields.BE = 'customfield_11603';
+
+                    spreadSheetData = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)];
+
+                    if(!spreadSheetData){
+                        alert('Unable to find data for: ' + thatSprint.sprintName + '\nIs the name correct in Google Sheet?')
+
+                        return;
+                    }
 
                     for (var z = 0, dataIssuesLen = data.issues.length; z < dataIssuesLen; z++) {
                         doubleLabels = [];
@@ -147,8 +156,7 @@
                                         thatSprint[labelOne].hours += hoursActual;
                                     }
 
-                                    thatSprint[labelOne].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelOne];
-
+                                        thatSprint[labelOne].available = spreadSheetData[labelOne];
 
                                     labels.push(labelOne);
                                 }
@@ -164,7 +172,7 @@
                                         thatSprint[labelTwo].hours += hoursActual;
                                     }
 
-                                    thatSprint[labelTwo].available = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)][labelTwo];
+                                    thatSprint[labelTwo].available = spreadSheetData[labelTwo];
 
                                     labels.push(labelTwo);
                                 }
