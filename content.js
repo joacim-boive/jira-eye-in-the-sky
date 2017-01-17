@@ -91,7 +91,8 @@
                 thatSprint: thisSprint,
                 spreadSheetData: spreadSheetData,
                 data: {
-                    'jql': 'sprint=' + thisSprint.sprintId + ' AND type != Sub-task'
+                    'jql': 'sprint=' + thisSprint.sprintId + ' AND type != Sub-task',
+                    'maxResults': '1000'
                 }
             })
                 .done(function getIssuesInCurrentSprint(data) {
@@ -99,9 +100,7 @@
                     var thatSprint = that.thatSprint;
                     var html = '';
                     var labels = [];
-                    var hoursForStory = 0;
                     var hoursActual = 0;
-                    var hoursIncludingSubTasks = 0;
                     var key = '';
                     var $timeHolder = null;
                     var listIssue = null;
@@ -116,10 +115,12 @@
                     spreadSheetData = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)];
 
                     if(!spreadSheetData){
-                        alert('Unable to find data for: ' + thatSprint.sprintName + '\nIs the name correct in Google Sheet?')
+                        alert('Unable to find data for: ' + thatSprint.sprintName + '\nIs the name correct in Google Sheet?');
 
                         return;
                     }
+
+                    console.group(thatSprint);
 
                     for (var z = 0, dataIssuesLen = data.issues.length; z < dataIssuesLen; z++) {
                         doubleLabels = [];
@@ -127,20 +128,15 @@
                         issue = data.issues[z];
 
                         labels = [];
-                        hoursIncludingSubTasks = issue.fields.aggregatetimeestimate / 3600;
-                        key = issue.key;
                         $timeHolder = $('div[data-issue-key="' + key + '"] span.ghx-statistic-badge');
-                        listIssue = document.querySelector('a[title="' + issue.key + '"]');
+                        hoursActual = parseInt(issue.fields.aggregatetimeestimate) || parseInt(issue.fields.aggregatetimeoriginalestimate);
 
-                        hoursForStory = parseInt($timeHolder.text());
-                        hoursActual = !hoursIncludingSubTasks ? hoursForStory : hoursIncludingSubTasks ? hoursIncludingSubTasks : 0;
-                        hoursActual = hoursActual ? hoursActual : 0;
+                        hoursActual = hoursActual / 3600;
+
                         $timeHolder.text(hoursActual);
 
                         thatSprint.totalHours += hoursActual;
 
-
-                        if (listIssue) {
                             for (var x = 0, labelLen = issue.fields.labels.length; x < labelLen; x++) {
                                 /**
                                  * NOTE: This will count the same hours "twice" if the issue has both labelOne and labelTwo.
@@ -188,17 +184,19 @@
                                 thatSprint['hasDouble'].hours += hoursActual;
                             }
 
-                            $(listIssue).closest('.js-issue').attr('data-labels', labels.join(','));
-                        }
+                            // $(listIssue).closest('.js-issue').attr('data-labels', labels.join(','));
+                        // }
                     }
+
+                    console.groupEnd();
 
                     html += '<ul><li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and type != sub-task') + '">' +
                         thatSprint.sprintName + ' : ' + thatSprint.sprintId + '</a></li><ul>';
 
-                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelOne + ')') + '">' +
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in (' + labelOne + ') and labels not in (' + labelTwo + ') AND type != Sub-task') + '">' +
                         labelOne + ': ' + thatSprint[labelOne].count + ' / ' + thatSprint[labelOne].hours + 'h of ' + thatSprint[labelOne].available + 'h</a>';
 
-                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in(' + labelTwo + ')') + '">' +
+                    html += '<li><a target="_blank" href="' + url + '/issues/?jql=sprint=' + encodeURIComponent(thatSprint.sprintId + ' and labels in (' + labelTwo + ') and labels not in (' + labelOne + ') AND type != Sub-task') + '">' +
                         labelTwo + ': ' + thatSprint[labelTwo].count + ' / ' + thatSprint[labelTwo].hours + 'h of ' + thatSprint[labelTwo].available + 'h</a>';
 
                     if (thatSprint['hasDouble'].count > 0) {
@@ -225,10 +223,6 @@
 
         });
     }
-
-    //function findSprintAvailabilityData(id){
-    // for(var n = 0, spread)
-    //}
 
     function messageSystem() {
         var thisId = 'jiralyzer';
