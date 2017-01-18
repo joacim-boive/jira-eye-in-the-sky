@@ -53,6 +53,9 @@
     height: 0;
     min-height: 0;
 }
+#jiralyzer.collapsed #loader{
+    display: none;
+}
 
 #jiralyzer p{
     padding: 2%;
