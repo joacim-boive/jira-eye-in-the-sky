@@ -35,7 +35,7 @@
 
         jiralyzer.show();
 
-        thisMessageHolder.innerHTML = '<p>Loading...</p>';
+        thisMessageHolder.innerHTML = '<div id="loader"><div id="box"></div><div id="hill"></div></div>';
 
         $(document).ajaxStop(function () {
             var totalTimer = '';
@@ -114,7 +114,7 @@
 
                     spreadSheetData = this.spreadSheetData[encodeURIComponent(thatSprint.sprintName)];
 
-                    if(!spreadSheetData){
+                    if (!spreadSheetData) {
                         alert('Unable to find data for: ' + thatSprint.sprintName + '\nIs the name correct in Google Sheet?');
 
                         return;
@@ -137,54 +137,54 @@
 
                         thatSprint.totalHours += hoursActual;
 
-                            for (var x = 0, labelLen = issue.fields.labels.length; x < labelLen; x++) {
-                                /**
-                                 * NOTE: This will count the same hours "twice" if the issue has both labelOne and labelTwo.
-                                 */
-                                if (issue.fields.labels[x] === labelOne) {
-                                    doubleLabels.push(labelOne);
+                        for (var x = 0, labelLen = issue.fields.labels.length; x < labelLen; x++) {
+                            /**
+                             * NOTE: This will count the same hours "twice" if the issue has both labelOne and labelTwo.
+                             */
+                            if (issue.fields.labels[x] === labelOne) {
+                                doubleLabels.push(labelOne);
 
-                                    thatSprint[labelOne].count++;
+                                thatSprint[labelOne].count++;
 
-                                    if (!isNaN(parseInt(issue.fields[customFields[labelOne]]))) {
-                                        thatSprint[labelOne].hours += parseInt(issue.fields[customFields[labelOne]]);
-                                    } else {
-                                        thatSprint[labelOne].hours += hoursActual;
-                                    }
-
-                                        thatSprint[labelOne].available = spreadSheetData[labelOne];
-
-                                    labels.push(labelOne);
+                                if (!isNaN(parseInt(issue.fields[customFields[labelOne]]))) {
+                                    thatSprint[labelOne].hours += parseInt(issue.fields[customFields[labelOne]]);
+                                } else {
+                                    thatSprint[labelOne].hours += hoursActual;
                                 }
-                                if (issue.fields.labels[x] === labelTwo) {
-                                    doubleLabels.push(labelTwo);
 
-                                    thatSprint[labelTwo].count++;
+                                thatSprint[labelOne].available = spreadSheetData[labelOne];
+
+                                labels.push(labelOne);
+                            }
+                            if (issue.fields.labels[x] === labelTwo) {
+                                doubleLabels.push(labelTwo);
+
+                                thatSprint[labelTwo].count++;
 
 
-                                    if (!isNaN(parseInt(issue.fields[customFields[labelTwo]]))) {
-                                        thatSprint[labelTwo].hours += parseInt(issue.fields[customFields[labelTwo]]);
-                                    } else {
-                                        thatSprint[labelTwo].hours += hoursActual;
-                                    }
-
-                                    thatSprint[labelTwo].available = spreadSheetData[labelTwo];
-
-                                    labels.push(labelTwo);
+                                if (!isNaN(parseInt(issue.fields[customFields[labelTwo]]))) {
+                                    thatSprint[labelTwo].hours += parseInt(issue.fields[customFields[labelTwo]]);
+                                } else {
+                                    thatSprint[labelTwo].hours += hoursActual;
                                 }
-                            }
 
-                            if (labels.length === 0) {
-                                thatSprint.missingLabels++;
-                                console.warn('Missing labels: ' + key);
-                            }
+                                thatSprint[labelTwo].available = spreadSheetData[labelTwo];
 
-                            if (doubleLabels.length > 1) {
-                                thatSprint['hasDouble'].count++;
-                                thatSprint['hasDouble'].hours += hoursActual;
+                                labels.push(labelTwo);
                             }
+                        }
 
-                            // $(listIssue).closest('.js-issue').attr('data-labels', labels.join(','));
+                        if (labels.length === 0) {
+                            thatSprint.missingLabels++;
+                            console.warn('Missing labels: ' + key);
+                        }
+
+                        if (doubleLabels.length > 1) {
+                            thatSprint['hasDouble'].count++;
+                            thatSprint['hasDouble'].hours += hoursActual;
+                        }
+
+                        // $(listIssue).closest('.js-issue').attr('data-labels', labels.join(','));
                         // }
                     }
 
@@ -245,6 +245,9 @@
             dm.style.left = (event.clientX + parseInt(offset[0], 10)) + 'px';
             dm.style.top = (event.clientY + parseInt(offset[1], 10)) + 'px';
 
+            //Remember the dropped position
+            chrome.storage.local.set({'position':  [dm.style.left,dm.style.top]});
+
             event.preventDefault();
             return false;
         }
@@ -259,11 +262,27 @@
         thisMessage.addEventListener('dragstart', dragStart, false);
         document.body.addEventListener('dragover', dragOver, false);
         document.body.addEventListener('drop', drop, false);
+
+        chrome.storage.local.get(['position', 'state'], function(config){
+            debugger;
+            if(config.position){
+                jiralyzer[0].style.left = config.position[0];
+                jiralyzer[0].style.top = config.position[1];
+            }
+
+            if(config.state === true){
+                jiralyzer.addClass('collapsed');
+            }
+        })
     }
 
     function eventHandlers() {
         jiralyzer.find('h1').on('click', function () {
             jiralyzer.toggleClass('collapsed');
+            debugger;
+
+
+            chrome.storage.local.set({'state': jiralyzer.hasClass('collapsed')});
         });
 
         var target = document.querySelector('#ghx-content-group');
